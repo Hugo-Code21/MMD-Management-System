@@ -29,6 +29,26 @@ if (can_manage($user)) {
     $statement->execute(['user_id' => $user['id']]);
     $recentProjects = $statement->fetchAll();
 }
+$pipelineQuery = can_manage($user)
+    ? db()->query('SELECT status, COUNT(*) AS total FROM projects GROUP BY status')
+    : db()->prepare(
+        'SELECT p.status, COUNT(DISTINCT p.id) AS total
+         FROM projects p JOIN project_members pm ON pm.project_id = p.id
+         WHERE pm.member_id = :member_id GROUP BY p.status'
+    );
+if ($pipelineQuery instanceof PDOStatement && !can_manage($user)) {
+    $pipelineQuery->execute(['member_id' => $user['member_id']]);
+}
+$projectPipeline = array_fill_keys(
+    ['Planning', 'Assigned', 'In Progress', 'Editing', 'Review', 'Completed', 'Archived'],
+    0
+);
+foreach ($pipelineQuery->fetchAll() as $row) {
+    if (array_key_exists($row['status'], $projectPipeline)) {
+        $projectPipeline[$row['status']] = (int) $row['total'];
+    }
+}
+$pipelineMaximum = max(1, ...array_values($projectPipeline));
 
 render_header('Dashboard', $user);
 show_flash();
@@ -39,6 +59,15 @@ echo '<div class="welcome-row"><div><p class="eyebrow">MMD MEDIA MANAGEMENT</p><
     . '<article class="stat-card"><span>Active projects</span><strong>' . $counts['projects'] . '</strong><small>Not completed or archived</small></article>'
     . '<article class="stat-card"><span>Upcoming events</span><strong>' . $counts['events'] . '</strong><small>Scheduled from today</small></article>'
     . '<article class="stat-card"><span>Equipment</span><strong>—</strong><small>Equipment module planned next</small></article></section>'
+    . '<section class="panel pipeline-panel"><div class="section-heading"><div><p class="eyebrow">PROJECT OVERVIEW</p><h2>Project pipeline</h2></div><a href="' . e(url('projects.php')) . '">Explore projects</a></div>'
+    . '<div class="pipeline-chart" role="img" aria-label="Project counts by status">';
+foreach ($projectPipeline as $status => $total) {
+    $barWidth = (int) round(($total / $pipelineMaximum) * 100);
+    echo '<div class="pipeline-row"><span class="pipeline-label">' . e($status) . '</span>'
+        . '<span class="pipeline-track"><span class="pipeline-bar" style="width:' . $barWidth . '%"></span></span>'
+        . '<strong class="pipeline-total">' . $total . '</strong></div>';
+}
+echo '</div></section>'
     . '<div class="content-grid"><section class="panel"><div class="section-heading"><div><p class="eyebrow">ON THE CALENDAR</p><h2>Upcoming events</h2></div><a href="' . e(url('events.php')) . '">View all</a></div>';
 if ($upcomingEvents === []) {
     echo '<p class="empty-state">No upcoming events yet.</p>';

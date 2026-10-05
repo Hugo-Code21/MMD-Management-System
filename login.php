@@ -6,11 +6,7 @@ if (current_user() !== null) {
 }
 
 $error = '';
-$statement = db()->query(
-    'SELECT m.full_name FROM members m JOIN users u ON u.member_id = m.id
-     WHERE m.status = "Active" ORDER BY m.full_name'
-);
-$registeredNames = $statement->fetchAll(PDO::FETCH_COLUMN);
+$name = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
@@ -36,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 render_header('Sign in');
-echo '<main class="auth-wrap"><section class="auth-card"><a class="brand auth-brand" href="' . e(url('login.php')) . '"><span class="brand-mark">M</span><span>MMD <small>MEDIA MANAGEMENT</small></span></a>'
+echo '<main class="auth-wrap"><section class="auth-card">' . brand_link('login.php', 'auth-brand')
     . '<p class="eyebrow">MEDIA MAHARDHIKA DIVISION</p><h1>Welcome back</h1><p class="muted">Sign in with your registered name and personal password.</p>';
 show_flash();
 if ($error !== '') {
@@ -44,11 +40,8 @@ if ($error !== '') {
 }
 echo '<form method="post" action="' . e(url('login.php')) . '" class="form-stack">'
     . '<input type="hidden" name="csrf_token" value="' . e(csrf_token()) . '">'
-    . '<label>Registered name<select name="full_name" required><option value="">Choose your name</option>';
-foreach ($registeredNames as $name) {
-    echo '<option value="' . e($name) . '">' . e($name) . '</option>';
-}
-echo '</select></label><label>Password<input type="password" name="password" autocomplete="current-password" required></label>'
+    . '<label>Registered name<input name="full_name" autocomplete="username" maxlength="120" value="' . e($name) . '" required></label>'
+    . '<label>Password<input type="password" name="password" autocomplete="current-password" required></label>'
     . '<button class="button button-primary button-full" type="submit">Sign in</button></form>'
     . '<p class="auth-foot">First time here? <a href="' . e(url('register.php')) . '">Set up your account</a></p></section></main>';
 render_footer();

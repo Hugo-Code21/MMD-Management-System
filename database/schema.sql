@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS members (
     position VARCHAR(80) NOT NULL DEFAULT 'Member',
     access_role VARCHAR(32) NOT NULL DEFAULT 'member',
     class_name VARCHAR(80) NULL,
+    birth_date DATE NULL,
+    team_role VARCHAR(80) NULL,
     phone VARCHAR(32) NULL,
     joined_on DATE NULL,
     status VARCHAR(24) NOT NULL DEFAULT 'Active',
@@ -79,3 +81,69 @@ CREATE TABLE IF NOT EXISTS project_members (
     CONSTRAINT fk_project_members_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
     CONSTRAINT fk_project_members_member FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+INSERT INTO events (event_name, event_date, start_time, end_time, location, description)
+SELECT 'MMD Photography Workshop', '2027-01-16', '09:00:00', '12:00:00',
+       'School media room', 'Practice event photography and camera basics.'
+WHERE NOT EXISTS (
+    SELECT 1 FROM events WHERE event_name = 'MMD Photography Workshop'
+);
+
+INSERT INTO events (event_name, event_date, start_time, end_time, location, description)
+SELECT 'School Arts Festival Coverage', '2027-02-06', '08:00:00', '16:00:00',
+       'School campus', 'Document performances and publish selected photos to the Link Foto archive.'
+WHERE NOT EXISTS (
+    SELECT 1 FROM events WHERE event_name = 'School Arts Festival Coverage'
+);
+
+INSERT INTO events (event_name, event_date, start_time, end_time, location, description)
+SELECT 'MMD Portfolio Review', '2027-02-20', '13:00:00', '15:00:00',
+       'School media room', 'Review recent work and prepare a team portfolio.'
+WHERE NOT EXISTS (
+    SELECT 1 FROM events WHERE event_name = 'MMD Portfolio Review'
+);
+
+INSERT INTO projects (event_id, title, description, status, due_date)
+SELECT e.id, 'Photography Workshop Gallery', 'Select and organize photographs from the workshop.',
+       'Planning', '2027-01-23'
+FROM events e
+WHERE e.event_name = 'MMD Photography Workshop'
+  AND NOT EXISTS (
+      SELECT 1 FROM projects WHERE title = 'Photography Workshop Gallery'
+  );
+
+INSERT INTO projects (event_id, title, description, status, due_date)
+SELECT e.id, 'Arts Festival Photo Coverage', 'Capture festival highlights and prepare photos for the Link Foto archive.',
+       'Assigned', '2027-02-13'
+FROM events e
+WHERE e.event_name = 'School Arts Festival Coverage'
+  AND NOT EXISTS (
+      SELECT 1 FROM projects WHERE title = 'Arts Festival Photo Coverage'
+  );
+
+INSERT INTO projects (event_id, title, description, status, due_date)
+SELECT e.id, 'MMD Team Portfolio', 'Curate approved event photographs into a team portfolio.',
+       'Planning', '2027-02-27'
+FROM events e
+WHERE e.event_name = 'MMD Portfolio Review'
+  AND NOT EXISTS (
+      SELECT 1 FROM projects WHERE title = 'MMD Team Portfolio'
+  );
+
+INSERT IGNORE INTO project_members (project_id, member_id, assigned_role)
+SELECT p.id, m.id, assignments.assigned_role
+FROM (
+    SELECT 'Photography Workshop Gallery' AS project_title, 'Hugo Delvian Maheswara' AS member_name, 'Team member' AS assigned_role
+    UNION ALL
+    SELECT 'Photography Workshop Gallery', 'Anastasya', 'Team member'
+    UNION ALL
+    SELECT 'Arts Festival Photo Coverage', 'Reihan M.A.', 'Team member'
+    UNION ALL
+    SELECT 'Arts Festival Photo Coverage', 'Aline', 'Team member'
+    UNION ALL
+    SELECT 'MMD Team Portfolio', 'Shaka', 'Team member'
+    UNION ALL
+    SELECT 'MMD Team Portfolio', 'Arthur', 'Team member'
+) AS assignments
+JOIN projects p ON p.title = assignments.project_title
+JOIN members m ON m.full_name = assignments.member_name;

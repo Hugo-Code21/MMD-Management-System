@@ -37,7 +37,22 @@ function e(?string $value): string
 function url(string $path): string
 {
     $baseUrl = app_config()['base_url'];
+    if ($baseUrl === '') {
+        $scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+        $baseUrl = dirname($scriptName);
+        if ($baseUrl === '.' || $baseUrl === '/') {
+            $baseUrl = '';
+        }
+    }
     return $baseUrl . '/' . ltrim($path, '/');
+}
+
+function brand_link(string $target, string $class = ''): string
+{
+    $className = $class === '' ? 'brand' : 'brand ' . $class;
+    return '<a class="' . e($className) . '" href="' . e(url($target))
+        . '" aria-label="MMD, Media Mahardhika Division"><img class="brand-logo" src="'
+        . e(url('assets/7753.png')) . '" alt="MMD, Media Mahardhika Division"></a>';
 }
 
 function redirect(string $path): never
@@ -160,18 +175,19 @@ function render_header(string $title, ?array $user = null): void
     $pageTitle = e($title);
     $photoUrl = 'https://smkmahardhika.sch.id/link-foto/';
     echo '<!doctype html><html lang="en"><head><meta charset="utf-8">'
-        . '<meta name="viewport" content="width=device-width, initial-scale=1">'
-        . '<meta name="color-scheme" content="dark"><title>' . $pageTitle . ' · MMD</title>'
-        . '<link rel="stylesheet" href="' . e(url('assets/css/app.css')) . '"></head><body>';
+        . '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
+        . '<meta name="color-scheme" content="dark"><title>' . $pageTitle . ' · MMD, Media Mahardhika Division</title>'
+        . '<link rel="icon" type="image/png" href="' . e(url('assets/7753.png')) . '">'
+        . '<link rel="stylesheet" href="' . e(url('assets/css/app.css?v=20261005-brand-1')) . '"></head><body>';
     if ($user !== null) {
-        echo '<div class="app-shell"><aside class="sidebar"><a class="brand" href="' . e(url('dashboard.php')) . '"><span class="brand-mark">M</span><span>MMD <small>MEDIA MANAGEMENT</small></span></a>'
+        echo '<div class="app-shell"><aside class="sidebar">' . brand_link('dashboard.php')
             . '<nav aria-label="Main navigation"><a href="' . e(url('dashboard.php')) . '">Dashboard</a>'
             . '<a href="' . e(url('members.php')) . '">Members</a><a href="' . e(url('events.php')) . '">Events</a>'
             . '<a href="' . e(url('projects.php')) . '">Projects</a>'
             . '<a href="' . e($photoUrl) . '" target="_blank" rel="noopener noreferrer">Link Foto ↗</a></nav>'
             . '<div class="sidebar-bottom"><span>' . e($user['full_name']) . '<small>' . e(role_label($user['access_role'])) . '</small></span>'
             . '<form action="' . e(url('logout.php')) . '" method="post"><input type="hidden" name="csrf_token" value="' . e(csrf_token()) . '"><button class="nav-logout" type="submit">Log out</button></form></div></aside>'
-            . '<main class="main-content"><header class="topbar"><span>Media Mahardhika Division</span><span class="user-chip">' . e($user['full_name']) . '</span></header><div class="page-content">';
+            . '<main class="main-content"><header class="topbar"><span>MMD · Media Mahardhika Division</span><span class="user-chip">' . e($user['full_name']) . '</span></header><div class="page-content">';
     }
 }
 
