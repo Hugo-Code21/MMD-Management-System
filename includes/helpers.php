@@ -178,7 +178,7 @@ function render_header(string $title, ?array $user = null): void
         . '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
         . '<meta name="color-scheme" content="dark"><title>' . $pageTitle . ' · MMD, Media Mahardhika Division</title>'
         . '<link rel="icon" type="image/png" href="' . e(url('assets/7753.png')) . '">'
-        . '<link rel="stylesheet" href="' . e(url('assets/css/app.css?v=20261005-brand-1')) . '"></head><body>';
+        . '<link rel="stylesheet" href="' . e(url('assets/css/app.css?v=20261006-project-progress-1')) . '"></head><body>';
     if ($user !== null) {
         echo '<div class="app-shell"><aside class="sidebar">' . brand_link('dashboard.php')
             . '<nav aria-label="Main navigation"><a href="' . e(url('dashboard.php')) . '">Dashboard</a>'

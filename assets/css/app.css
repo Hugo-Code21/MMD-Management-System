@@ -814,6 +814,73 @@ td {
   text-align: right;
 }
 
+.project-progress-panel {
+  margin-bottom: 20px;
+}
+
+.project-progress-panel .section-heading {
+  align-items: flex-start;
+}
+
+.project-progress-panel .section-heading .muted {
+  margin: 6px 0 0;
+  font-size: 12px;
+}
+
+.project-progress-chart {
+  display: grid;
+  gap: 17px;
+}
+
+.project-progress-row {
+  display: grid;
+  gap: 8px;
+}
+
+.project-progress-heading,
+.project-progress-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.project-progress-heading strong {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.project-progress-status {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.project-progress-track {
+  display: block;
+  height: 8px;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #2a2222;
+}
+
+.project-progress-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ad171d, #f04449);
+  box-shadow: 0 0 14px #ef3a4035;
+  transition: width 0.3s ease;
+}
+
+.project-progress-percent {
+  width: 38px;
+  color: #ff9b9e;
+  font-size: 12px;
+  text-align: right;
+}
+
 @media (max-width: 720px) {
   .brand {
     width: 154px;

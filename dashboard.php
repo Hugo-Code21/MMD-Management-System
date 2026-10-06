@@ -18,6 +18,10 @@ if (can_manage($user)) {
          FROM projects p LEFT JOIN events e ON e.id = p.event_id
          ORDER BY p.updated_at DESC LIMIT 5'
     )->fetchAll();
+    $progressProjects = db()->query(
+        'SELECT id, title, status FROM projects
+         WHERE status != "Archived" ORDER BY updated_at DESC'
+    )->fetchAll();
 } else {
     $statement = db()->prepare(
         'SELECT p.id, p.title, p.status, p.due_date, e.event_name
@@ -28,7 +32,23 @@ if (can_manage($user)) {
     );
     $statement->execute(['user_id' => $user['id']]);
     $recentProjects = $statement->fetchAll();
+    $progressStatement = db()->prepare(
+        'SELECT p.id, p.title, p.status FROM projects p
+         JOIN project_members pm ON pm.project_id = p.id
+         WHERE pm.member_id = :member_id AND p.status != "Archived"
+         ORDER BY p.updated_at DESC'
+    );
+    $progressStatement->execute(['member_id' => $user['member_id']]);
+    $progressProjects = $progressStatement->fetchAll();
 }
+$statusProgress = [
+    'Planning' => 0,
+    'Assigned' => 20,
+    'In Progress' => 40,
+    'Editing' => 60,
+    'Review' => 80,
+    'Completed' => 100,
+];
 $pipelineQuery = can_manage($user)
     ? db()->query('SELECT status, COUNT(*) AS total FROM projects GROUP BY status')
     : db()->prepare(
@@ -68,6 +88,24 @@ foreach ($projectPipeline as $status => $total) {
         . '<strong class="pipeline-total">' . $total . '</strong></div>';
 }
 echo '</div></section>'
+    . '<section class="panel project-progress-panel"><div class="section-heading"><div><p class="eyebrow">WORK IN MOTION</p><h2>Project progress</h2><p class="muted">Progress is estimated from each project’s workflow stage.</p></div></div>';
+if ($progressProjects === []) {
+    echo '<p class="empty-state">No active projects to track yet.</p>';
+} else {
+    echo '<div class="project-progress-chart" role="list" aria-label="Progress of each project">';
+    foreach ($progressProjects as $project) {
+        $progress = $statusProgress[$project['status']] ?? 0;
+        echo '<article class="project-progress-row" role="listitem">'
+            . '<div class="project-progress-heading"><strong>' . e($project['title']) . '</strong>'
+            . '<span class="project-progress-status">' . e($project['status']) . '</span></div>'
+            . '<div class="project-progress-details"><span class="project-progress-track" role="progressbar"'
+            . ' aria-label="Progress for ' . e($project['title']) . '" aria-valuemin="0" aria-valuemax="100"'
+            . ' aria-valuenow="' . $progress . '"><span class="project-progress-bar" style="width:' . $progress . '%"></span></span>'
+            . '<strong class="project-progress-percent">' . $progress . '%</strong></div></article>';
+    }
+    echo '</div>';
+}
+echo '</section>'
     . '<div class="content-grid"><section class="panel"><div class="section-heading"><div><p class="eyebrow">ON THE CALENDAR</p><h2>Upcoming events</h2></div><a href="' . e(url('events.php')) . '">View all</a></div>';
 if ($upcomingEvents === []) {
     echo '<p class="empty-state">No upcoming events yet.</p>';
