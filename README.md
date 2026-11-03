@@ -54,3 +54,5 @@ Coordinator accounts can create, edit, and delete events and projects, update pr
 
 The `Link Foto` navigation opens [the school's photo archive](https://smkmahardhika.sch.id/link-foto/) in a new tab.
 "# MMD-Management-System" 
+
+## Enjoy! 
